@@ -2,18 +2,19 @@ name = "rental-chat-manager"
 compatibility_date = "2026-04-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Frontend: Your Vite React app
+# Frontend: Vite React app
 pages_build_output_dir = "dist"
 
-# Backend: Main Worker entry point
+# Backend: Worker
 main = "src/worker/index.js"
 
-# D1 Database (for conversations, messages, rental status)
+# D1 Database - FIXED with database_id
 [[d1_databases]]
 binding = "DB"
 database_name = "rental-chat-db"
+database_id = 92fd2b52-f54d-42a7-95a4-6f24ee79e521   # ← Replace with your FULL UUID
 
-# R2 Bucket (for photos: chat images, inspections, receipts)
+# R2 for photos
 [[r2_buckets]]
 binding = "CHAT_IMAGES"
 bucket_name = "rental-chat-images"
