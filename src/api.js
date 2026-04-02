@@ -1,20 +1,19 @@
-// src/lib/api.js
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+// src/App.jsx
+import { useState } from 'react';
+import ChatScreen from './components/chatscreen';
 
-export const sendMessage = async (conversationId, senderId, text, imageUrl = null, imageUrls = null) => {
-  const res = await fetch(`${API_BASE}/api/messages`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ conversationId, senderId, text, imageUrl, imageUrls })
-  });
-  return res.json();
-};
+function App() {
+  // For demo: using a fixed conversation ID
+  const [conversationId] = useState("demo-conversation-001");
 
-export const updateRentalStatus = async (conversationId, status, showingTime = null, notes = null) => {
-  const res = await fetch(`${API_BASE}/api/conversations/${conversationId}/status`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status, showingTime, notes })
-  });
-  return res.json();
-};
+  return (
+    <div className="min-h-screen bg-gray-950">
+      <ChatScreen 
+        conversationId={conversationId} 
+        currentUserId="landlord-1" 
+      />
+    </div>
+  );
+}
+
+export default App;
