@@ -1,78 +1,96 @@
-// src/components/ChatScreen.jsx
-import { useState, useEffect } from 'react';
+// src/components/chatscreen.jsx
+import { useState } from 'react';
+import CabinetMenu from './CabinetMenu';
 import { sendMessage, updateRentalStatus } from '../api';
 
-export default function ChatScreen({ conversationId, currentUserId = "landlord-1" }) {
+export default function ChatScreen({ conversationId = "demo-conv-1", currentUserId = "landlord-1" }) {
   const [messages, setMessages] = useState([]);
   const [newText, setNewText] = useState('');
   const [status, setStatus] = useState('Inquiry');
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleSendMessage = async () => {
+  const handleSend = async () => {
     if (!newText.trim()) return;
     await sendMessage(conversationId, currentUserId, newText);
     setNewText('');
-    // In real app, refresh messages here
-    console.log('Message sent');
+    // For demo: add message locally
+    setMessages([...messages, { text: newText, senderId: currentUserId }]);
   };
 
-  const handleStatusChange = async (newStatus) => {
+  const handleStatusUpdate = async (newStatus) => {
     await updateRentalStatus(conversationId, newStatus);
     setStatus(newStatus);
-    alert(`Rental status updated to: ${newStatus}`);
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-white">
-      {/* Header with Rental Status + Quick Actions */}
-      <div className="bg-gray-900 p-4 border-b border-gray-800 flex items-center justify-between">
-        <div>
-          <h2 className="font-semibold">Rental Conversation</h2>
-          <p className="text-sm text-green-400">Status: {status}</p>
-        </div>
-
-        <div className="flex gap-2">
-          <button 
-            onClick={() => handleStatusChange('Showing Scheduled')}
-            className="px-4 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm"
-          >
-            Schedule Showing
-          </button>
-          <button 
-            onClick={() => handleStatusChange('Approved')}
-            className="px-4 py-1 bg-green-600 hover:bg-green-700 rounded text-sm"
-          >
-            Mark Approved
-          </button>
-        </div>
+    <div className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden">
+      {/* Top Bar with Hamburger */}
+      <div className="bg-gray-900 px-4 py-3 flex items-center justify-between border-b border-gray-800">
+        <button 
+          onClick={() => setMenuOpen(true)}
+          className="text-2xl p-2"
+        >
+          ☰
+        </button>
+        <div className="font-semibold">Rental Chat</div>
+        <div className="text-sm text-green-400">{status}</div>
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-950">
-        {messages.length === 0 && (
-          <p className="text-gray-500 text-center mt-10">No messages yet. Start the conversation!</p>
+      {/* Chat Messages Area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 ? (
+          <div className="text-center text-gray-500 mt-20">
+            No messages yet.<br />Start the conversation!
+          </div>
+        ) : (
+          messages.map((msg, i) => (
+            <div key={i} className={`flex ${msg.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] px-4 py-3 rounded-2xl ${msg.senderId === currentUserId ? 'bg-blue-600' : 'bg-gray-800'}`}>
+                {msg.text}
+              </div>
+            </div>
+          ))
         )}
-        {/* Messages will appear here */}
       </div>
 
-      {/* Bottom Input Bar (Messenger style) */}
-      <div className="p-4 border-t border-gray-800 bg-gray-900">
+      {/* Action Buttons for Rental Workflow */}
+      <div className="px-4 py-2 bg-gray-900 border-t border-gray-800 flex gap-2 overflow-x-auto">
+        <button 
+          onClick={() => handleStatusUpdate('Showing Scheduled')}
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm whitespace-nowrap"
+        >
+          Schedule Showing
+        </button>
+        <button 
+          onClick={() => handleStatusUpdate('Approved')}
+          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-sm whitespace-nowrap"
+        >
+          Mark Approved
+        </button>
+      </div>
+
+      {/* Message Input Bar */}
+      <div className="p-4 bg-gray-900 border-t border-gray-800">
         <div className="flex gap-2">
           <input
             type="text"
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Type a message..."
-            className="flex-1 bg-gray-800 rounded-full px-5 py-3 focus:outline-none"
+            className="flex-1 bg-gray-800 rounded-full px-5 py-3 text-white focus:outline-none"
           />
           <button 
-            onClick={handleSendMessage}
-            className="bg-blue-600 px-8 rounded-full font-medium"
+            onClick={handleSend}
+            className="bg-blue-600 px-7 rounded-full font-medium"
           >
             Send
           </button>
         </div>
       </div>
+
+      {/* Cabinet Menu */}
+      <CabinetMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
 }
