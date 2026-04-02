@@ -5,14 +5,11 @@ compatibility_flags = ["nodejs_compat"]
 # Frontend: Vite React app
 pages_build_output_dir = "dist"
 
-# Backend: Worker
-main = "src/worker/index.js"
-
 # D1 Database
 [[d1_databases]]
 binding = "DB"
 database_name = "rental-chat-db"
-database_id = "92fd2b52-f54d-42a7-95a4-6f24ee79e521"   # ← Make sure this is your FULL UUID
+database_id = "92fd2b52-f54d-42a7-95a4-6f24ee79e521"
 
 # R2 for photos
 [[r2_buckets]]
