@@ -1,0 +1,50 @@
+// src/worker/index.js
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // CORS headers (important for frontend calling the Worker)
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    // Example route: POST /api/messages - send a message
+    if (path === "/api/messages" && request.method === "POST") {
+      const { conversationId, senderId, text, imageUrl } = await request.json();
+
+      // Save to D1 database
+      await env.DB.prepare(
+        "INSERT INTO messages (conversation_id, sender_id, text, image_url, created_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)"
+      ).bind(conversationId, senderId, text || null, imageUrl || null).run();
+
+      // TODO: Later add Durable Objects for real-time broadcasting
+
+      return Response.json({ success: true }, { headers: corsHeaders });
+    }
+
+    // Example route: PATCH /api/conversations/:id/status - update rental status
+    if (path.startsWith("/api/conversations/") && path.endsWith("/status") && request.method === "PATCH") {
+      const conversationId = path.split("/")[3];
+      const { status } = await request.json(); // e.g. "Inquiry", "Showing Scheduled", "Approved"
+
+      await env.DB.prepare(
+        "UPDATE conversations SET status = ? WHERE id = ?"
+      ).bind(status, conversationId).run();
+
+      return Response.json({ success: true, status }, { headers: corsHeaders });
+    }
+
+    // Default response
+    return new Response("Worker is running", { 
+      status: 200,
+      headers: corsHeaders 
+    });
+  }
+};
